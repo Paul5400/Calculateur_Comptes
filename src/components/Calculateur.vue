@@ -2,7 +2,6 @@
   <div class="container">
     <h1>Comptes Tanto</h1>
 
-
     <div v-for="(restaurant, key) in restaurants" :key="key" class="restaurant">
       <h3>{{ key }}</h3>
       <input type="text" v-model="restaurant.montantBrut" placeholder="Montant brut" @input="formatInput(key)" />
@@ -12,7 +11,6 @@
     <div class="summary">
       <p>Total Net : <strong>{{ totalRevenuNet.toFixed(2) }} €</strong></p>
     </div>
-
 
     <div class="inputs">
       <div class="input-group">
@@ -57,16 +55,16 @@ export default {
       return parseFloat(montant) * coef || 0; // Assure que le résultat soit un nombre, même si la valeur est vide
     };
 
-    // Calcul du total net
+    // Calcul du total net en incluant le montant AE
     const totalRevenuNet = computed(() => {
       return Object.values(restaurants.value).reduce((acc, restaurant) => {
         return acc + (restaurant.montantBrut ? calculerRevenuNet(restaurant.montantBrut, restaurant.coefficient) : 0);
-      }, 0);
+      }, 0) + (parseFloat(montantAE.value) || 0); // Ajouter le montant AE ici
     });
 
     // Calcul du Total Mensuel : Mensuel veille + Total net du jour + AE
     const totalMensuelFinal = computed(() => {
-      return (parseFloat(montantMensuelVeille.value) || 0) + totalRevenuNet.value + (parseFloat(montantAE.value) || 0);
+      return (parseFloat(montantMensuelVeille.value) || 0) + totalRevenuNet.value;
     });
 
     // Fonction pour formater les entrées et les convertir en nombre avec un point décimal
@@ -76,6 +74,8 @@ export default {
         value = montantAE.value;
       } else if (field === 'montantMensuelVeille') {
         value = montantMensuelVeille.value;
+      } else {
+        value = restaurants.value[field].montantBrut;
       }
 
       if (value !== '' && !isNaN(parseFloat(value))) {
@@ -85,6 +85,8 @@ export default {
           montantAE.value = value;
         } else if (field === 'montantMensuelVeille') {
           montantMensuelVeille.value = value;
+        } else {
+          restaurants.value[field].montantBrut = value;
         }
       } else {
         // Si la valeur n'est pas valide, réinitialiser
@@ -92,6 +94,8 @@ export default {
           montantAE.value = '';
         } else if (field === 'montantMensuelVeille') {
           montantMensuelVeille.value = '';
+        } else {
+          restaurants.value[field].montantBrut = '';
         }
       }
     };
